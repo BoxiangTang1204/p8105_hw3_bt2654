@@ -28,13 +28,13 @@ library(tidyverse)
 glimpse(ny_noaa)
 summary(ny_noaa)
 
-# Convert tmax and tmin to numeric
-ny_noaa$tmax <- as.numeric(ny_noaa$tmax)
-ny_noaa$tmin <- as.numeric(ny_noaa$tmin)
-
-# Check for any conversion issues
-summary(ny_noaa$tmax)
-summary(ny_noaa$tmin)
+# Convert tmin & tmax to numeric variables
+ny_noaa =
+  ny_noaa |>
+  mutate(
+    tmin = as.numeric(tmin),
+    tmax = as.numeric(tmax)
+  )
 ```
 
 
@@ -43,10 +43,10 @@ summary(ny_noaa$tmin)
 The dataset contains `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. Below are the key details:
 
 
-* **Key Variables:**
+* *Key Variables:*
   
   
-  * date (character): Dates range from `r min(ny_noaa$date, na.rm = TRUE)` to `r max(ny_noaa$date, na.rm = TRUE)`, spanning `r as.numeric(difftime(max(ny_noaa$date, na.rm = TRUE), min(ny_noaa$date, na.rm = TRUE), units = "days"))` days.
+  * date (numeric): Dates range from `r min(ny_noaa$date, na.rm = TRUE)` to `r max(ny_noaa$date, na.rm = TRUE)`, spanning `r as.numeric(difftime(max(ny_noaa$date, na.rm = TRUE), min(ny_noaa$date, na.rm = TRUE), units = "days"))` days.
 
   * prcp (numeric): Precipitation (tenths of mm), ranging from `r min(ny_noaa$prcp, na.rm = TRUE)` to `r max(ny_noaa$prcp, na.rm = TRUE)` with an average of `r mean(ny_noaa$prcp, na.rm = TRUE)`.
   
@@ -60,7 +60,7 @@ The dataset contains `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variab
   
 
 ```{r}
-# Analyzing missing values of the raw data
+# Analysising Missing Values of the raw data
 
 missing_data_summary = 
   ny_noaa |>
@@ -77,12 +77,11 @@ missing_data_percentage
 ```
 
 
-
 ### Data about the missing values for the key variables:
 
-* prcp: `r missing_data_summary$prcp` missing values (`r round(missing_data_percentage$prcp, 2)`% of the total dataset)
+* prcp : `r missing_data_summary$prcp` missing values (`r round(missing_data_percentage$prcp, 2)`% of the total dataset)
 
-* snow: `r missing_data_summary$snow` missing values (`r round(missing_data_percentage$snow, 2)`%)
+* snow : `r missing_data_summary$snow` missing values (`r round(missing_data_percentage$snow, 2)`%)
 
 * snwd: `r missing_data_summary$snwd` missing values (`r round(missing_data_percentage$snwd, 2)`%)
 
@@ -100,7 +99,7 @@ snwd has about 22.8% missing data. This level indicates that snow depth informat
 
 * The most critical concern is with tmax and tmin, both of which have approximately 43.71% missing values. Such a high percentage implies that temperature data is nearly absent for almost half of the dataset. This poses a major limitation for any temperature-related analysis, such as identifying seasonal trends or calculating average temperatures. Given this extent of missing data, imputation techniques (like interpolation based on nearby stations) or focusing analyses on stations with more complete data might be necessary. In some cases, entire segments of the dataset might need to be excluded if temperature analysis is central to the study.
 
-* Summary: The extent of missing data varies, with some variables (like prcp) showing manageable levels of missingness, while others (especially tmax and tmin) present significant issues. For temperature data, the missing rate of nearly 44% indicates a serious data quality issue, requiring careful handling to avoid biased or incomplete analysis outcomes
+* **Summary:** The extent of missing data varies, with some variables (like prcp) showing manageable levels of missingness, while others (especially tmax and tmin) present significant issues. For temperature data, the missing rate of nearly 44% indicates a serious data quality issue, requiring careful handling to avoid biased or incomplete analysis outcomes
 
 
 ```{r}
@@ -122,8 +121,8 @@ ny_noaa =
   ny_noaa |>
   mutate(
     prcp = prcp / 10,  # Convert precipitation to mm
-    tmax = as.numeric(tmax) / 10,  # Convert to degrees Celsius
-    tmin = as.numeric(tmin) / 10   # Convert to degrees Celsius
+    tmax = tmax / 10,  # Convert to degrees Celsius
+    tmin = tmin / 10   # Convert to degrees Celsius
   )
 
 # 3. Identify most commonly observed snowfall values
@@ -147,14 +146,14 @@ head(snowfall_distribution, 5)
 
 * The most frequently recorded snowfall value is 0 mm, which occurs `r snowfall_distribution$n[1]` times, indicating no snowfall on most recorded days. The possible reasons for that could be following:
   
-     * **Nature of the Dataset (GHCN-Daily):**  The Global Historical Climatology Network-Daily (GHCN-Daily) database is structured to record daily weather statistics. In climates like New York's, it is expected that a large proportion of daily observations would have no snowfall, as even in winter months, many days do not receive measurable snow. Thus, the design and recording frequency of the dataset contribute to a higher frequency of zero values.
+     * **Nature of the Dataset (GHCN-Daily):** The Global Historical Climatology Network-Daily (GHCN-Daily) database is structured to record daily weather statistics. In climates like New York's, it is expected that a large proportion of daily observations would have no snowfall, as even in winter months, many days do not receive measurable snow. Thus, the design and recording frequency of the dataset contribute to a higher frequency of zero values.
   
     * **Seasonality and Climate of New York State:**  New York experiences distinct seasonal changes. Snowfall typically occurs during the winter months (December through February), with possible snowfall events extending into late autumn (November) and early spring (March). For the remainder of the year (approximately 7-8 months), snowfall is uncommon or non-existent. As a result, for these non-winter months, the recorded snowfall value is naturally 0 mm, significantly increasing the frequency of zero values.
     
     * **Incomplete or Selective Data Reporting:**  As noted in the dataset's description, each station may collect only a subset of the variables, which could mean that not all stations consistently report snowfall data, especially if snowfall is infrequent in those regions. This selective reporting could bias the dataset toward more frequent 0 mm values, as stations that rarely or never observe snow may default to reporting zero.
 
 
-```{r,warning=FALSE}
+```{r}
 # Make two-panel plot showing the average max temperature in January & July in each station across years
 
 # Load necessary libraries
@@ -163,17 +162,17 @@ library(dplyr)
 library(patchwork)
 
 
-
 # Calculate the average max temperatures for January and July for each station
 avg_tmax_jan_jul_station = 
   ny_noaa |>
   filter(month %in% c(1, 7)) |>
   group_by(id, year, month) |>
-  summarise(avg_tmax = mean(tmax, na.rm = TRUE)) |>
+  summarise(avg_tmax = 
+              mean(tmax, na.rm = TRUE)) |>
   ungroup()
 
 # Create a faceted line plot by station for January and July
-facet_line_plot = 
+facet_line_plot =
   ggplot(avg_tmax_jan_jul_station, 
          aes(x = year, y = avg_tmax, 
              group = id, 
@@ -187,14 +186,15 @@ facet_line_plot =
        color = "Month") +
   facet_wrap(~ month, 
              scales = "free_y", 
-             labeller = labeller(month = c('1' = "January", 
-                                           '7' = "July"))) +
+             labeller = labeller(month = 
+                                   c('1' = "January", 
+                                     '7' = "July"))) +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, 
-                                   hjust = 1))
+  theme(axis.text.x = 
+          element_text(angle = 45, 
+                       hjust = 1))
 
 facet_line_plot
-
 
 
 ```
@@ -203,30 +203,37 @@ facet_line_plot
 ### Analysis of the Two-Panel Graph
 
 **January Panel：**
-The January panel reveals that average maximum temperatures across stations remain relatively stable over time, with most stations showing consistent patterns without a long-term upward or downward trend. This stability indicates that winter temperatures have not experienced significant shifts in the observed years. However, some stations exhibit occasional deviations where temperatures either spike higher or dip lower than the rest, signaling potential outliers. These outliers could be due to isolated cold or warm events or data anomalies specific to certain stations.
+
+* The January panel reveals that average maximum temperatures across stations remain relatively stable over time, with most stations showing consistent patterns without a long-term upward or downward trend. This stability indicates that winter temperatures have not experienced significant shifts in the observed years. However, some stations exhibit occasional deviations where temperatures either spike higher or dip lower than the rest, signaling potential outliers. These outliers could be due to isolated cold or warm events or data anomalies specific to certain stations.
 
 **July Panel：**
-In contrast, the July panel displays a broader range of temperatures, with most stations fluctuating between 25 and 30°C. A slight upward trend is visible across several stations, hinting at a gradual warming pattern consistent with summer climate change impacts. Unlike January, there is more pronounced variability in July temperatures, with some stations showing extreme values either above 30°C or below 20°C. These variations may correspond to heatwaves or localized microclimatic effects, presenting potential outliers that require further investigation.
+
+* In contrast, the July panel displays a broader range of temperatures, with most stations fluctuating between 25 and 30°C. A slight upward trend is visible across several stations, hinting at a gradual warming pattern consistent with summer climate change impacts. Unlike January, there is more pronounced variability in July temperatures, with some stations showing extreme values either above 30°C or below 20°C. These variations may correspond to heatwaves or localized microclimatic effects, presenting potential outliers that require further investigation.
 
 **Summary Comparison：**
-The January and July panels demonstrate distinct seasonal patterns. January temperatures remain stable with minimal long-term change, suggesting resilience in winter conditions, while July temperatures show more variability and a slight warming trend over time. The July panel also highlights a higher frequency of outliers, indicative of the greater susceptibility of summer temperatures to extreme events and localized climatic influences. This contrast emphasizes that summer months are more sensitive to temperature fluctuations and potential climate change effects than winter months.
+
+* The January and July panels demonstrate distinct seasonal patterns. January temperatures remain stable with minimal long-term change, suggesting resilience in winter conditions, while July temperatures show more variability and a slight warming trend over time. The July panel also highlights a higher frequency of outliers, indicative of the greater susceptibility of summer temperatures to extreme events and localized climatic influences. This contrast emphasizes that summer months are more sensitive to temperature fluctuations and potential climate change effects than winter months.
 
 
 ```{r}
 # Make two-panel plot showing tmax vs tmin for the full dataset & the distribution of snowfall values greater than 0 and less than 100 
 
-# Load necessary libraries
-library(ggplot2)
-library(dplyr)
+# Load necessary library
 library(ggridges)
 
 # Prepare data for tmax vs tmin ridge plot
-tmax_tmin_data <- ny_noaa %>%
+tmax_tmin_data = 
+  ny_noaa |>
   filter(!is.na(tmax) & !is.na(tmin))
 
 # Create a ridge plot for tmax grouped by rounded tmin values
-tmax_tmin_ridge_plot <- ggplot(tmax_tmin_data, aes(x = tmax, y = factor(round(tmin, -1)), fill = factor(round(tmin, -1)))) +
-  geom_density_ridges(scale = 3, rel_min_height = 0.01) +
+tmax_tmin_ridge_plot = 
+  ggplot(tmax_tmin_data, 
+         aes(x = tmax, 
+             y = factor(round(tmin, -1)), 
+             fill = factor(round(tmin, -1)))) +
+  geom_density_ridges(scale = 3, 
+                      rel_min_height = 0.01) +
   labs(title = "Ridge Plot of Tmax Grouped by Rounded Tmin",
        x = "Maximum Temperature (°C)",
        y = "Rounded Minimum Temperature (°C)") +
@@ -234,18 +241,24 @@ tmax_tmin_ridge_plot <- ggplot(tmax_tmin_data, aes(x = tmax, y = factor(round(tm
   theme(legend.position = "none")
 
 # Prepare data for the snowfall distribution plot
-snowfall_data <- ny_noaa %>%
-  filter(snow > 0 & snow < 100) %>%
-  group_by(year) %>%
+snowfall_data <- ny_noaa |>
+  filter(snow > 0 & snow < 100) |>
+  group_by(year) |>
   mutate(year = as.factor(year))
 
 # Create a boxplot showing the distribution of snowfall values per year
-snowfall_boxplot <- ggplot(snowfall_data, aes(x = year, y = snow)) +
-  geom_boxplot(fill = "lightgreen", alpha = 0.7) +
+snowfall_boxplot =
+  ggplot(snowfall_data, 
+         aes(x = year, y = snow)) +
+  geom_boxplot(fill = "lightgreen", 
+               alpha = 0.7) +
   labs(title = "Snowfall Distribution by Year (0 < snow < 100 mm)",
-       x = "Year", y = "Snowfall (mm)") +
+       x = "Year", 
+       y = "Snowfall (mm)") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = 
+          element_text(angle = 90, 
+                       hjust = 1))
 
 # Combine the plots into a two-panel layout
 combined_plot <- tmax_tmin_ridge_plot / snowfall_boxplot
@@ -259,19 +272,219 @@ combined_plot
 ### Analysis of the Two-Panel Graph
 
 **Panel 1: Ridge Plot of tmax Grouped by Rounded tmin**
-The ridge plot illustrates the distribution of tmax values across different tmin categories. As tmin values increase, the distributions of tmax shift towards higher values, demonstrating a clear positive correlation between the two variables. The spread of the ridges indicates that maximum temperatures are more variable when minimum temperatures are low, but they become narrower and more consistent as tmin increases. The peaks in the ridges show the most common tmax values for each tmin category, confirming that higher minimum temperatures typically lead to higher and more stable maximum temperatures.
+
+* The ridge plot illustrates the distribution of tmax values across different tmin categories. As tmin values increase, the distributions of tmax shift towards higher values, demonstrating a clear positive correlation between the two variables. The spread of the ridges indicates that maximum temperatures are more variable when minimum temperatures are low, but they become narrower and more consistent as tmin increases. The peaks in the ridges show the most common tmax values for each tmin category, confirming that higher minimum temperatures typically lead to higher and more stable maximum temperatures.
 
 **Panel 2: Boxplot of Snowfall Distribution by Year**
-The boxplot shows the annual distribution of snowfall values between 0 and 100 mm, revealing the variability and consistency of snowfall over the years. While the median snowfall value remains generally stable, the interquartile ranges (IQR) vary, indicating differences in consistency from year to year. The presence of outliers highlights years with extreme snowfall events that deviate significantly from the norm, suggesting occasional severe weather occurrences that influence snowfall patterns.
+
+* The boxplot shows the annual distribution of snowfall values between 0 and 100 mm, revealing the variability and consistency of snowfall over the years. While the median snowfall value remains generally stable, the interquartile ranges (IQR) vary, indicating differences in consistency from year to year. The presence of outliers highlights years with extreme snowfall events that deviate significantly from the norm, suggesting occasional severe weather occurrences that influence snowfall patterns.
 
 **Summary**
-The ridge plot shows a consistent relationship between tmin and tmax, with temperatures becoming more stable as tmin rises. In contrast, the snowfall boxplot reveals annual variability, with stable medians but varying ranges and outliers indicating extreme events. Together, these panels effectively highlight the stability in temperature patterns and the variability in snowfall over time.
+
+* The ridge plot shows a consistent relationship between tmin and tmax, with temperatures becoming more stable as tmin rises. In contrast, the snowfall boxplot reveals annual variability, with stable medians but varying ranges and outliers indicating extreme events. Together, these panels effectively highlight the stability in temperature patterns and the variability in snowfall over time.
 
 
 
 ## Problem 2
+
+### Part 1
 ```{r}
+
+# 1. Load both datasets and clean column names
+nhanes_covar = 
+  read_csv("data/nhanes_covar.csv", 
+           skip = 4) |>
+  janitor::clean_names()
+
+nhanes_accel = 
+  read_csv("data/nhanes_accel.csv") |>
+  janitor::clean_names()
+
+# 2. Data explorations (check structure, summary, and missing values)
+# summary(nhanes_covar)
+# summary(nhanes_accel)
+# colSums(is.na(nhanes_covar))
+# colSums(is.na(nhanes_accel))
+
+# 3. Data manipulations
+nhanes_covar_df = 
+  nhanes_covar |>
+  filter(age >= 21) |>  # Exclude participants less than 21 years of age
+  drop_na()  # Remove rows with missing demographic data
+
+# 4. Merge datasets based on participant ID (SEQN)
+nhanes_merged =
+  nhanes_accel |>
+  inner_join(nhanes_covar_df, 
+             by = "seqn") |>
+  select(all_of(colnames(nhanes_covar_df)),
+         everything())
+
+# 5. Convert appropriate columns to factors
+nhanes_merged = 
+  nhanes_merged |>
+  mutate(
+    sex = factor(sex, levels = c("1", "2"), 
+                 labels = c("male", "female")),
+    education = factor(education, 
+                       levels = c("1", "2", "3"),
+                       labels = c("Less than high school", 
+                                  "High school equivalent", 
+                                  "More than high school"),
+                       ordered = TRUE)
+  )
+
+# 6. Check the structure and summary of the cleaned dataset
+# summary(nhanes_merged)
+```
+
+
+### Part 2
+```{r}
+# 1. Produce a reader-friendly table for the number of men and women in each education category
+education_sex_table =
+  nhanes_merged |>
+  group_by(education, sex) |>
+  summarise(count = n()) |>
+  pivot_wider(names_from = sex, 
+              values_from = count, 
+              values_fill = 0)
+
+print(education_sex_table)
+
+# 2. Create a visualization of age distributions for men and women in each education category
+nhanes_merged |>
+  ggplot(aes(x = age, fill = sex)) +
+  geom_histogram(binwidth = 5, position = "dodge", color = "black", alpha = 0.7) +
+  scale_fill_manual(values = c("#0073C2FF", "#EFC000FF")) +  # Change colors to be more distinct
+  facet_wrap(~ education) +
+  labs(
+    title = "Age Distribution by Education Level and Sex",
+    x = "Age",
+    y = "Count",
+    fill = "Sex"
+  ) +
+  theme_minimal(base_size = 15) +
+  theme(
+    panel.grid.major = element_line(size = 0.5),
+    panel.grid.minor = element_line(size = 0.25),
+    legend.position = "bottom",
+    strip.text = element_text(size = 12)
+  )
 
 ```
 
+
+**Table: Education-Sex Distribution**
+
+* The table summarizes the number of participants by education level and sex, showing that the counts are relatively balanced between the two genders across all categories. In the "Less than high school" group, there are 27 males and 28 females. The "High school equivalent" category has a slightly higher number of males 35 compared to females 23. For the "More than high school" group, the count is higher for both genders, with 56 males and 59 females. This suggests that the sample is more concentrated in the higher education category, with a reasonably even distribution of participants by sex across all education levels.
+
+
+**Plot: Age Distribution by Education Level and Sex**
+
+* The plot displays the age distribution of participants across three education levels: Less than high school, High school equivalent, and More than high school. In the "More than high school" group, participants are mostly concentrated in the 20-40 year range, with a relatively even distribution across older ages, including participants beyond 60 years. The "Less than high school" group shows a more varied distribution, with noticeable counts in the 30-60 year range, but without a distinct peak. The "High school equivalent" category features a smaller and relatively uniform distribution across age groups, with a slight decline in participants above 60 years.
+
+* Regarding gender representation, males (blue) and females (yellow) are generally evenly distributed across education levels. However, in the "More than high school" category, females slightly outnumber males in the 20-40 year age range. The "Less than high school" and "High school equivalent" categories display relatively balanced gender distributions, with no significant gender disparity evident in any age group.
+
+
+**Summary**
+
+* The analysis shows that participants with higher education levels (More than high school) tend to be younger, particularly clustered in the 20-40 years range, whereas participants with lower education levels (Less than high school) are more evenly spread across ages, with no pronounced peak. The gender distributions across education levels appear balanced, with a slight dominance of females in the 20-40 years range within the higher education group. This data suggests a relationship between education level and age distribution, while gender distribution remains relatively uniform across all education levels.
+
+
+### Part 3
+```{r}
+# 1. Aggregate accelerometer data to create a total activity variable for each participant
+nhanes_merged <- nhanes_merged %>%
+  rowwise() %>%
+  mutate(total_activity = sum(c_across(starts_with("min")), na.rm = TRUE))
+
+# 2. Plot total activities against age, with separate panels for each education level
+nhanes_merged %>%
+  ggplot(aes(x = age, y = total_activity, color = sex)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "loess", se = FALSE, size = 1) +  # Use a smoother trend line for better representation
+  facet_wrap(~ education) +
+  scale_color_manual(values = c("#0073C2FF", "#EFC000FF")) +  # Use distinct colors for male and female
+  labs(
+    title = "Total Activity vs. Age by Education Level and Sex",
+    x = "Age",
+    y = "Total Activity",
+    color = "Sex"
+  ) +
+  theme_minimal(base_size = 15) +
+  theme(
+    panel.grid.major = element_line(size = 0.5),
+    panel.grid.minor = element_line(size = 0.25),
+    legend.position = "bottom",
+    strip.text = element_text(size = 12)
+  )
+
+
+```
+
+
+**Plot: Total Activity vs. Age by Education Level and Sex**
+
+The plot presents the relationship between total activity and age, divided across three panels by education level: "Less than high school," "High school equivalent," and "More than high school." The points are color-coded by sex, with blue representing males and yellow representing females. LOESS smoother curves are applied to visualize trends for each group.
+
+  * **Less than high school:** The activity trends for both males and females decline as age increases. Males show a more noticeable peak in activity around ages 50–60 before a sharp drop. Female activity levels are more stable across the range but decline slightly with age.
+
+  * **High school equivalent:** Both sexes exhibit a rise in activity levels around age 40, followed by a gradual decline towards older ages. Males maintain a higher activity level initially but converge with females after age 60.
+
+  * **More than high school:** Activity levels for both sexes show a flatter trend with a smaller decline over time. A slight peak appears around ages 50–60 for females, followed by a decline. Males display relatively stable activity across the entire age range, with some variability in older ages.
+
+This visualization highlights distinct trends in physical activity across educational attainment. Individuals with more education appear to maintain higher and steadier activity levels over time, while those with lower education levels show more pronounced declines with age.
+
+
+### Part 4
+```{r}
+# 1. Create a 24-hour activity time course for each education level
+# Aggregate the accelerometer data to create a time series for each minute across the day
+nhanes_long <- nhanes_merged %>%
+  pivot_longer(cols = starts_with("min"), names_to = "minute", values_to = "activity") %>%
+  mutate(minute = as.numeric(str_remove(minute, "min")))
+
+# 2. Plot the 24-hour activity time course
+nhanes_long %>%
+  ggplot(aes(x = minute, y = activity, color = sex)) +
+  geom_line(stat = "summary", fun = "mean", alpha = 0.4, size = 0.8) +  # Plot mean activity for each minute with transparency for clarity
+  geom_smooth(method = "loess", se = FALSE, linetype = "solid", size = 1.5) +  # Add a thicker smooth trend line for better visibility
+  facet_wrap(~ education) +
+  scale_color_manual(values = c("#0073C2FF", "#EFC000FF")) +  # Use distinct colors for male and female
+  labs(
+    title = "24-Hour Activity Time Course by Education Level and Sex",
+    x = "Minute of the Day",
+    y = "Mean Activity",
+    color = "Sex"
+  ) +
+  theme_minimal(base_size = 15) +
+  theme(
+    panel.grid.major = element_line(size = 0.5),
+    panel.grid.minor = element_line(size = 0.25),
+    legend.position = "bottom",
+    strip.text = element_text(size = 12)
+  )
+```
+
+
+**Plot: 24-Hour Activity Time Course by Education Level and Sex**
+
+This plot illustrates the average activity levels of participants throughout the day, segmented by education level (less than high school, high school equivalent, and more than high school) and sex (male and female). Each panel presents the activity patterns across a 24-hour day, with smoother lines highlighting trends for both sexes.
+
+* **Less than High School:**  In this group, both males and females exhibit similar activity patterns. Activity levels rise sharply in the morning, peaking between 500 and 1000 minutes (approximately 8:00 AM to 4:00 PM). Activity tapers off steadily after 1000 minutes, with a noticeable decline into the evening hours. The overall activity levels are relatively balanced between the two sexes.
+
+* **High School Equivalent:** A similar morning peak is observed in this group, but the divergence between males and females becomes more noticeable. Males tend to maintain higher activity levels for a longer portion of the day, with their activity curve staying elevated later into the afternoon. Females, while peaking at similar times, show a more rapid decline in the late afternoon.
+
+* **More than High School:** The participants with higher education levels display higher overall activity throughout the day, especially females. Females in this group exhibit a distinct peak around mid-morning to early afternoon, maintaining higher activity levels compared to males, whose activity drops off earlier. The smoother lines suggest that females maintain higher sustained activity over the course of the day.
+
+**Summary:**
+This plot highlights that education level and sex both influence daily activity patterns. Individuals with higher education appear to maintain greater physical activity, particularly females. Across all groups, mornings are characterized by increased activity, tapering off as the day progresses. The differences between males and females are most pronounced in the higher education group, suggesting that lifestyle or occupational differences may play a role in shaping these patterns.
+
+
+
+## Problem 3
+```{r}
+
+```
 
