@@ -71,8 +71,8 @@ missing_data_summary =
 missing_data_percentage = 
   missing_data_summary / nrow(ny_noaa) * 100
 
-missing_data_summary
-missing_data_percentage
+print(missing_data_summary)
+print(missing_data_percentage)
 
 ```
 
@@ -131,7 +131,7 @@ snowfall_distribution =
   filter(!is.na(snow)) |>
   count(snow, sort = TRUE)
 
-head(snowfall_distribution, 5)
+print(head(snowfall_distribution, 5))
 
 
 ```
@@ -153,7 +153,7 @@ head(snowfall_distribution, 5)
     * **Incomplete or Selective Data Reporting:**  As noted in the dataset's description, each station may collect only a subset of the variables, which could mean that not all stations consistently report snowfall data, especially if snowfall is infrequent in those regions. This selective reporting could bias the dataset toward more frequent 0 mm values, as stations that rarely or never observe snow may default to reporting zero.
 
 
-```{r}
+```{r, warning=FALSE}
 # Make two-panel plot showing the average max temperature in January & July in each station across years
 
 # Load necessary libraries
@@ -340,7 +340,7 @@ nhanes_merged =
 
 
 ### Part 2
-```{r}
+```{r,warning=FALSE}
 # 1. Produce a reader-friendly table for the number of men and women in each education category
 education_sex_table =
   nhanes_merged |>
@@ -393,7 +393,7 @@ nhanes_merged |>
 
 
 ### Part 3
-```{r}
+```{r,warning=FALSE}
 # 1. Aggregate accelerometer data to create a total activity variable for each participant
 nhanes_merged <- nhanes_merged %>%
   rowwise() %>%
@@ -439,7 +439,7 @@ The plot illustrates the relationship between total activity and age, categorize
 This visualization emphasizes the differences in physical activity trends based on educational attainment. Those with higher levels of education tend to have more stable and higher activity levels, while those with lower education levels experience a more significant decrease in activity with age. Additionally, the plot highlights the gender differences in activity levels across different education levels, with females often showing higher activity levels than males in certain age ranges.
 
 ### Part 4
-```{r}
+```{r,warning=FALSE}
 # 1. Create a 24-hour activity time course for each education level
 # Aggregate the accelerometer data to create a time series for each minute across the day
 nhanes_long <- nhanes_merged %>%
