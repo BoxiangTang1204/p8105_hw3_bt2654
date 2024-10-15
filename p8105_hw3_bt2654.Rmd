@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Problem 1
 
-```{r}
+```{r, message=FALSE}
 # Import & Load the data
 library(p8105.datasets)
 data("ny_noaa")
@@ -21,12 +21,12 @@ data("ny_noaa")
 ```
 
 
-```{r}
+```{r, message=FALSE}
 # Initial data explorations
 library(tidyverse)
 
-glimpse(ny_noaa)
-summary(ny_noaa)
+# glimpse(ny_noaa)
+knitr::kable(summary(ny_noaa), caption = "Summary of Data for Problem 1")
 
 # Convert tmin & tmax to numeric variables
 ny_noaa =
@@ -59,7 +59,7 @@ The dataset contains `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variab
   * tmin (character -> numeric): Minimum temperature (tenths of degrees Celsius), with an average of `r mean(ny_noaa$tmin, na.rm = TRUE)` degrees Celsius.
   
 
-```{r}
+```{r, message=FALSE}
 # Analysising Missing Values of the raw data
 
 missing_data_summary = 
@@ -71,8 +71,8 @@ missing_data_summary =
 missing_data_percentage = 
   missing_data_summary / nrow(ny_noaa) * 100
 
-print(missing_data_summary)
-print(missing_data_percentage)
+knitr::kable(missing_data_summary, caption = "Missing Data Summary")
+knitr::kable(missing_data_percentage, caption = "Missing Data Percentage")
 
 ```
 
@@ -102,7 +102,7 @@ snwd has about 22.8% missing data. This level indicates that snow depth informat
 * **Summary:** The extent of missing data varies, with some variables (like prcp) showing manageable levels of missingness, while others (especially tmax and tmin) present significant issues. For temperature data, the missing rate of nearly 44% indicates a serious data quality issue, requiring careful handling to avoid biased or incomplete analysis outcomes
 
 
-```{r}
+```{r,message=FALSE}
 # Data cleaning methods
 
 # 1. Convert the date column to Date type and extract year, month, and day
@@ -131,7 +131,9 @@ snowfall_distribution =
   filter(!is.na(snow)) |>
   count(snow, sort = TRUE)
 
-print(head(snowfall_distribution, 5))
+snowfall_dist_table = head(snowfall_distribution, 5)
+
+knitr::kable(snowfall_dist_table, caption = "Snowfall Distribution Table")
 
 
 ```
@@ -153,7 +155,7 @@ print(head(snowfall_distribution, 5))
     * **Incomplete or Selective Data Reporting:**  As noted in the dataset's description, each station may collect only a subset of the variables, which could mean that not all stations consistently report snowfall data, especially if snowfall is infrequent in those regions. This selective reporting could bias the dataset toward more frequent 0 mm values, as stations that rarely or never observe snow may default to reporting zero.
 
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, message=FALSE}
 # Make two-panel plot showing the average max temperature in January & July in each station across years
 
 # Load necessary libraries
@@ -215,7 +217,7 @@ facet_line_plot
 * The January and July panels demonstrate distinct seasonal patterns. January temperatures remain stable with minimal long-term change, suggesting resilience in winter conditions, while July temperatures show more variability and a slight warming trend over time. The July panel also highlights a higher frequency of outliers, indicative of the greater susceptibility of summer temperatures to extreme events and localized climatic influences. This contrast emphasizes that summer months are more sensitive to temperature fluctuations and potential climate change effects than winter months.
 
 
-```{r}
+```{r, message=FALSE}
 # Make two-panel plot showing tmax vs tmin for the full dataset & the distribution of snowfall values greater than 0 and less than 100 
 
 # Load necessary library
@@ -288,7 +290,7 @@ combined_plot
 ## Problem 2
 
 ### Part 1
-```{r}
+```{r, message=FALSE}
 
 # 1. Load both datasets and clean column names
 nhanes_covar = 
@@ -340,7 +342,7 @@ nhanes_merged =
 
 
 ### Part 2
-```{r,warning=FALSE}
+```{r,warning=FALSE, message=FALSE}
 # 1. Produce a reader-friendly table for the number of men and women in each education category
 education_sex_table =
   nhanes_merged |>
@@ -350,7 +352,7 @@ education_sex_table =
               values_from = count, 
               values_fill = 0)
 
-print(education_sex_table)
+knitr::kable(education_sex_table, caption = "Education & Sex Table")
 
 # 2. Create a visualization of age distributions for men and women in each education category
 nhanes_merged |>
@@ -393,7 +395,7 @@ nhanes_merged |>
 
 
 ### Part 3
-```{r,warning=FALSE}
+```{r,warning=FALSE, message=FALSE}
 # 1. Aggregate accelerometer data to create a total activity variable for each participant
 nhanes_merged <- nhanes_merged %>%
   rowwise() %>%
@@ -439,7 +441,7 @@ The plot illustrates the relationship between total activity and age, categorize
 This visualization emphasizes the differences in physical activity trends based on educational attainment. Those with higher levels of education tend to have more stable and higher activity levels, while those with lower education levels experience a more significant decrease in activity with age. Additionally, the plot highlights the gender differences in activity levels across different education levels, with females often showing higher activity levels than males in certain age ranges.
 
 ### Part 4
-```{r,warning=FALSE}
+```{r,warning=FALSE ,message=FALSE}
 # 1. Create a 24-hour activity time course for each education level
 # Aggregate the accelerometer data to create a time series for each minute across the day
 nhanes_long <- nhanes_merged %>%
@@ -480,13 +482,13 @@ This plot delineates the average activity levels of individuals across a 24-hour
 * **More than High School:** Participants with higher education levels display higher overall activity levels throughout the day. Both males and females reach a peak in activity around noon, with the trend for both being similar to the "High School Equivalent" group but with a more pronounced increase. Females show a particularly sharp increase in activity levels, reaching a higher peak average activity level than the "High School Equivalent" group. In the afternoon, both males' and females' activity levels decline, with females showing a more significant decrease, but remaining slightly above males until 1250 minutes, after which the average activity levels of both genders tend to align.
 
 **Summary:**
-The plot underscores the influence of education level and sex on daily activity patterns. Individuals with higher education levels tend to maintain higher overall activity levels throughout the day. Males generally exhibit higher activity levels than females, especially in the less educated groups. The midday period sees the highest activity levels across all education levels, with a decline in the afternoon and evening hours. The differences between males and females are most pronounced in the higher education group, suggesting that lifestyle or occupational differences may play a role in shaping these patterns.[^44^]
+The plot underscores the influence of education level and sex on daily activity patterns. Individuals with higher education levels tend to maintain higher overall activity levels throughout the day. Males generally exhibit higher activity levels than females, especially in the less educated groups. The midday period sees the highest activity levels across all education levels, with a decline in the afternoon and evening hours. The differences between males and females are most pronounced in the higher education group, suggesting that lifestyle or occupational differences may play a role in shaping these patterns.
 
 
 ## Problem 3
 
 ### Part 1
-```{r}
+```{r, message=FALSE}
 # Load necessary packages
 library(dplyr)
 library(ggplot2)
@@ -550,7 +552,7 @@ cleaned_df =
 
 
 # Display summary of the dataset
-summary(cleaned_df)
+knitr::kable(summary(cleaned_df), caption = "Summary of Data")
 ```
 
 **Key Steps in Data Cleaning Process**
@@ -640,7 +642,7 @@ summary(cleaned_df)
 
 
 ### Part 2
-```{r}
+```{r ,message=FALSE}
 # Group data by year, month, and member type
 grouped_rides = 
   cleaned_df |>
@@ -651,7 +653,7 @@ grouped_rides =
               values_fill = 0)
 
 # Display the grouped rides table
-print(grouped_rides)
+knitr::kable(grouped_rides, caption = "Group Rides Table")
 ```
 
 
@@ -707,7 +709,7 @@ In summary, the data reflects a consistent pattern of higher bike usage during s
 
 
 ### Part 3
-```{r}
+```{r,message=FALSE}
 # Filter data for July 2024
 july_2024_df <- 
   cleaned_df |>
@@ -722,7 +724,7 @@ top_stations_july_2024 <-
   head(5)
 
 # Display the top 5 most popular starting stations for July 2024
-print(top_stations_july_2024)
+knitr::kable(top_stations_july_2024, caption = "Top 5 Most Popular Starting Stations")
 
 ```
 
@@ -747,7 +749,7 @@ This analysis provides a clear understanding of ride patterns in July 2024, offe
 
 
 ### Part 4
-```{r, warning=FALSE}
+```{r, warning=FALSE,message=FALSE}
 
 # Calculate median ride duration by day of the week, month, and year
 median_duration_df = 
@@ -816,7 +818,7 @@ This plot offers important insights into ride behavior over time, highlighting t
 
 
 ### Part 5
-```{r}
+```{r, message=FALSE, warning=FALSE}
 # Filter the dataset for the year 2024
 data_2024 <- cleaned_df %>%
   filter(year == 2024)
